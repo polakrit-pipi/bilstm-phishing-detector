@@ -22,6 +22,7 @@
 1. Clone repository และเปิดใน Google Colab:
    ```bash
    git clone https://github.com/polakrit-pipi/bilstm-phishing-detector.git
+   pip install -r requirements.txt
 
 ## 🚀 Usage
 

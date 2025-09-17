@@ -1,0 +1,47 @@
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Phishing URL Analyzer</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; background: #f7f9fc; }
+            h1 { color: #333; }
+            .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+            input { width: 80%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+            button { padding: 10px 15px; margin-left: 10px; background: #007BFF; color: white; border: none; border-radius: 6px; cursor: pointer; }
+            button:hover { background: #0056b3; }
+            #result { margin-top: 20px; white-space: pre-wrap; padding: 15px; background: #f1f1f1; border-radius: 8px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔍 Phishing URL Analyzer</h1>
+            <input id="urlInput" type="text" placeholder="ใส่ URL ที่นี่">
+            <button onclick="analyze()">วิเคราะห์</button>
+            <div id="result"></div>
+        </div>
+
+        <script>
+            async function analyze() {
+                const url = document.getElementById("urlInput").value;
+                try {
+                    const res = await fetch("/analyze", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ url: url, call_llm: true })
+                    });
+                    const data = await res.json();
+                    document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+                } catch (err) {
+                    document.getElementById("result").textContent = "❌ Error: " + err;
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
