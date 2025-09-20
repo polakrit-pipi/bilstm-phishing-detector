@@ -23,9 +23,7 @@ import os
 
 
 
-# -------------------------
-# 1️⃣ FastAPI setup
-# -------------------------
+
 app = FastAPI(title="Phishing URL Analyzer")
 load_dotenv()  
 api_key = os.getenv("OPENAI_API_KEY")
@@ -41,19 +39,15 @@ app.add_middleware(
 
 class URLRequest(BaseModel):
     url: str
-    call_llm: bool = True  # whether to call LLM or not
+    call_llm: bool = True  
 
-# -------------------------
-# 2️⃣ Load Models / Tokenizer / Scaler / LabelEncoder
-# -------------------------
+
 scaler = joblib.load('utils/scaler-2.joblib')
 tokenizer = joblib.load('utils/tokenizer-2.joblib')
 le = joblib.load('utils/labelencoder-2.joblib')
 maxlen = 200
 
-# -------------------------
-# 3️⃣ Custom Attention Layer
-# -------------------------
+
 @register_keras_serializable()
 class Attention(Layer):
     def build(self, input_shape):
@@ -68,14 +62,10 @@ class Attention(Layer):
         a_it = tf.nn.softmax(tf.tensordot(u_it, self.u, axes=1), axis=1)
         return tf.reduce_sum(x * a_it, axis=1)
 
-# -------------------------
-# 4️⃣ Load BILSTM model
-# -------------------------
+
 model = load_model("utils/model.keras", custom_objects={"Attention": Attention})
 
-# -------------------------
-# 5️⃣ Utility functions
-# -------------------------
+
 BRAND_KEYWORDS = ["paypal","apple","amazon","bank","chase","facebook","meta","google","microsoft",
                   "outlook","office365","instagram","line","kbank","scb","krungsri","kplus"]
 COMMON_TLDS = set([
@@ -161,9 +151,7 @@ def meta_keyword_mismatch(meta_keywords, host):
             return True
     return False
 
-# -------------------------
-# 6️⃣ Rule-based phishing score
-# -------------------------
+
 def phishing_score(url, html):
     host, scheme = parse_host_and_scheme(url)
     features = extract_html_features(html)
@@ -193,7 +181,6 @@ def phishing_score(url, html):
     if meta_keyword_mismatch(features['meta_keywords'], host):
         score +=1; reasons.append("meta keywords ไม่ตรงกับ host")
 
-    # extra features
     dcount = digit_count(url)
     ulen = url_length(url)
     uentropy = url_entropy(url)
@@ -204,9 +191,7 @@ def phishing_score(url, html):
     features.update({"digit_count": dcount,"url_length": ulen,"url_entropy": uentropy})
     return score, reasons, features, host, scheme
 
-# -------------------------
-# 7️⃣ BiLSTM prediction
-# -------------------------
+
 def predict_url(url):
     struct_feat = scaler.transform([list({
         "is_ip_host": int(is_ip_host(urlparse(url).hostname or '')),
@@ -226,9 +211,7 @@ def predict_url(url):
     label = le.inverse_transform([np.argmax(pred)])[0]
     return label, pred
 
-# -------------------------
-# 8️⃣ API endpoint
-# -------------------------
+
 
 @app.post("/analyze")
 def analyze(request: URLRequest):
@@ -280,10 +263,9 @@ Extracted Features:
             temperature=0
         )
         try:
-            # แก้ไขตรงนี้
             raw_text = response.choices[0].message.content.strip()
             if raw_text.startswith("```"):
-                raw_text = "\n".join(raw_text.splitlines()[1:-1])  # ตัด ```json และ ```
+                raw_text = "\n".join(raw_text.splitlines()[1:-1])  
             llm_result = json.loads(raw_text)
         except Exception as e:
             llm_result = {"verdict":"Unknown","reason_list":[],"summary":response.choices[0].message.content}
@@ -399,8 +381,5 @@ async function analyze() {
 </html>
 """
 
-# -------------------------
-# 10️⃣ Run server
-# -------------------------
 if __name__=="__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
