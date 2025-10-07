@@ -1,4 +1,4 @@
-# 🔎 Phishing URL Detector (BiLSTM + Heuristic + LLM) HI
+# 🔎 Phishing URL Detector (BiLSTM + Heuristic + LLM)
 
 โปรเจ็กต์นี้เป็นระบบสำหรับตรวจจับ **Phishing URL** โดยใช้การผสมผสานของ 3 วิธีหลัก:
 1. **BiLSTM Model** → วิเคราะห์ URL ด้วย Deep Learning (sequence + structured features)
